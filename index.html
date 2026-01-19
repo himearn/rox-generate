@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ROX GENERATE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+ --bg:#f4f4f4; --card:#fff; --text:#222; --btn:#1e88e5;
+}
+.dark{
+ --bg:#0f172a; --card:#1e293b; --text:#e5e7eb; --btn:#22c55e;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI;}
+body{
+ background:var(--bg); color:var(--text);
+ display:flex; justify-content:center; align-items:center; min-height:100vh;
+}
+.container{
+ width:360px; background:var(--card); padding:20px;
+ border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;}
+.pass-box{display:flex;margin-bottom:8px;}
+.pass-box input{
+ flex:1;padding:10px;font-size:15px;border:1px solid #ccc;border-radius:6px 0 0 6px;
+}
+.pass-box button{
+ padding:10px;border:none;background:var(--btn);color:#fff;
+ border-radius:0 6px 6px 0;cursor:pointer;
+}
+.strength{height:8px;background:#ddd;border-radius:5px;overflow:hidden;margin-bottom:12px;}
+.strength div{height:100%;width:0%;transition:.3s;}
+.option{display:flex;justify-content:space-between;margin:6px 0;font-size:14px;}
+.generate{
+ width:100%;padding:12px;margin-top:10px;border:none;
+ background:var(--btn);color:white;font-size:16px;border-radius:8px;cursor:pointer;
+}
+.history{margin-top:12px;max-height:110px;overflow-y:auto;font-size:13px;}
+.history p{background:#00000010;padding:5px;border-radius:4px;margin-bottom:4px;word-break:break-all;}
+.toggle{cursor:pointer;font-size:14px;}
+</style>
+</head>
+
+<body>
+<div class="container">
+<header>
+ <h2>ROX GENERATE</h2>
+ <div class="toggle" onclick="toggleMode()">🌙 Mode</div>
+</header>
+
+<div class="pass-box">
+ <input type="text" id="password" readonly>
+ <button onclick="copyPass()">Copy</button>
+</div>
+
+<div class="strength"><div id="strengthBar"></div></div>
+
+<div class="option"><label>Length</label><input type="number" id="length" value="12" min="4" max="32"></div>
+<div class="option"><label>Uppercase</label><input type="checkbox" id="upper" checked></div>
+<div class="option"><label>Lowercase</label><input type="checkbox" id="lower" checked></div>
+<div class="option"><label>Numbers</label><input type="checkbox" id="number" checked></div>
+<div class="option"><label>Symbols</label><input type="checkbox" id="symbol"></div>
+
+<button class="generate" onclick="generatePassword()">Generate Password</button>
+
+<div class="history">
+ <h4>Password History</h4>
+ <div id="history"></div>
+</div>
+</div>
+
+<script>
+const passwordField = document.getElementById("password");
+const strengthBar = document.getElementById("strengthBar");
+const historyBox = document.getElementById("history");
+
+function generatePassword(){
+ const len = Number(document.getElementById("length").value);
+ const upper = document.getElementById("upper").checked;
+ const lower = document.getElementById("lower").checked;
+ const number = document.getElementById("number").checked;
+ const symbol = document.getElementById("symbol").checked;
+
+ let chars="";
+ if(upper) chars+="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+ if(lower) chars+="abcdefghijklmnopqrstuvwxyz";
+ if(number) chars+="0123456789";
+ if(symbol) chars+="!@#$%^&*()_+";
+
+ if(chars===""){ alert("Select at least one option"); return; }
+
+ let pass="";
+ for(let i=0;i<len;i++){
+   pass += chars.charAt(Math.floor(Math.random()*chars.length));
+ }
+
+ passwordField.value = pass;
+ checkStrength(pass);
+ saveHistory(pass);
+}
+
+function checkStrength(p){
+ let s=0;
+ if(p.length>=8) s+=25;
+ if(/[A-Z]/.test(p)) s+=25;
+ if(/[0-9]/.test(p)) s+=25;
+ if(/[^A-Za-z0-9]/.test(p)) s+=25;
+ strengthBar.style.width = s+"%";
+ strengthBar.style.background = s<=25?"red":s<=50?"orange":s<=75?"yellowgreen":"green";
+}
+
+function copyPass(){
+ if(passwordField.value==="") return;
+ navigator.clipboard.writeText(passwordField.value);
+ alert("Password Copied");
+}
+
+function saveHistory(p){
+ let h = JSON.parse(localStorage.getItem("roxHistory")) || [];
+ h.unshift(p);
+ if(h.length>5) h.pop();
+ localStorage.setItem("roxHistory", JSON.stringify(h));
+ showHistory();
+}
+
+function showHistory(){
+ let h = JSON.parse(localStorage.getItem("roxHistory")) || [];
+ historyBox.innerHTML="";
+ h.forEach(p=> historyBox.innerHTML+=`<p>${p}</p>`);
+}
+showHistory();
+
+function toggleMode(){
+ document.body.classList.toggle("dark");
+}
+</script>
+</body>
+</html>
